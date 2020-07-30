@@ -1,0 +1,15 @@
+extends ./layouts/main.pug
+
+block content
+    if (!isResult)
+        form.form(action="/note" method="post")
+            .form__title= message
+            label.label
+                input.input(type="text" name="id")
+                span.label__name :id
+            label.label
+                input.input(type="text" name="note")
+                span.label__name :note
+            button.form__submit create
+    else
+        h3= successMessage

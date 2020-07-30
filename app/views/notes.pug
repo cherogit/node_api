@@ -1,0 +1,13 @@
+extends ./layouts/main.pug
+
+block content
+    h1 Notes
+    if (notes.length)
+        ul.notes
+            for note in notes
+                li.notes__item
+                    a.notes__item-link(href="/note/" + note.id)
+                        .notes__item-title title: #{note.note}
+                        .notes__item-body id: #{note.id}
+    else
+        h3 No notes yet

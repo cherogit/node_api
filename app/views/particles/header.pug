@@ -1,0 +1,6 @@
+header.header
+    .container
+        nav.nav
+            a.nav__link(href="/" class=(isIndex) ? '_active' : '') Home
+            a.nav__link(href="/note" class=(isCreate) ? '_active' : '') Create
+            a.nav__link(href="/notes" class=(isNotes) ? '_active' : '') Notes
