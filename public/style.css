@@ -41,6 +41,10 @@
     border-bottom: 1px solid tomato;
 }
 
+.form {
+    padding: 25px 50px;
+}
+
 .form__title {
     margin-bottom: 50px;
     font-weight: 600;
@@ -133,9 +137,12 @@ h1 {
 }
 
 .notes__item-controls-btn {
+    text-decoration: none;
+    color: inherit;
     background-color: transparent;
     margin-right: 20px;
     padding: 10px 25px;
+    font-size: 14px;
     border: 0;
     outline: none;
     box-shadow: 0 1px 12px 0 rgba(0,0,0, .2);

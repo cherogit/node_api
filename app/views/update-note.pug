@@ -1,0 +1,35 @@
+extends ./layouts/main.pug
+
+block content
+  form.form(id="updateForm")
+    .form__title= message
+    label.label
+      input.input(type="text" name="id" value=`${note.id}`)
+      span.label__name :id
+    label.label
+      input.input(type="text" name="note" value=`${note.note}`)
+      span.label__name :note
+    button.form__submit(type="button" onclick=`updateNote('` + note.id + `')`) update
+
+block scripts
+  script.
+      function updateNote(currentId) {
+
+          const form = document.querySelector('#updateForm')
+          const formData = new FormData();
+          const id = form.querySelector('input[name="id"]').value
+          const note = form.querySelector('input[name="note"]').value
+
+          formData.append('currentId', currentId)
+          formData.append('id', id)
+          formData.append('note', note)
+
+          fetch(`/update/${currentId}`, {
+              method: 'PUT',
+              body: formData
+          })
+              .then(res => res.text())
+              .then(res => {
+                  window.location.href = `/note/${id}`
+              })
+      }

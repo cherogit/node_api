@@ -1,18 +1,12 @@
 Error.stackTraceLimit = Infinity
-const express = require('express');
-const path = require('path');
-const MongoClient = require('mongodb').MongoClient;
-const bodyParser = require('body-parser');
-const dbConfig = require('./config/db');
-const app = express();
-const NOTES = []
+
+const express = require('express')
+const formidableMiddleware = require('express-formidable')
+const path = require('path')
+const MongoClient = require('mongodb').MongoClient
+const bodyParser = require('body-parser')
+const dbConfig = require('./config/db')
 let db = null
-
-app.set(`view engine`, `pug`);
-app.set(`views`, `./app/views`)
-
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(express.static(path.join(__dirname, '/public')));
 
 MongoClient.connect(dbConfig.url, {
     useUnifiedTopology: true
@@ -25,17 +19,31 @@ MongoClient.connect(dbConfig.url, {
     }
 })
 
+const app = express();
+
+app.set(`view engine`, `pug`);
+app.set(`views`, `./app/views`)
+
+app.use(function (err, req, res, next) {
+    console.error(err)
+    res.status(500).send('Something broke!')
+})
+app.use(formidableMiddleware())
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(express.static(path.join(__dirname, '/public')))
+
+app.use((req, res, next) => {
+    // if (Math.random() > 0.5) next()
+    next()
+})
+
 app.get('/', async (req, res) => {
     try {
-        // res.sendFile(path.join(__dirname+'/app/views/index2.html'))
         res.render('index', {
             title: 'Home',
             isIndex: true,
             message: 'Home Page'
         })
-
-        console.log(await db.collection(`test`).find({}).toArray())
-        // NOTES.push(await db.collection(`test`).find({}).toArray())
     } catch (err) {
         console.log(err);
     }
@@ -43,9 +51,6 @@ app.get('/', async (req, res) => {
 
 app.get('/notes', async (req, res) => {
     try {
-        // res.sendFile(path.join(__dirname+'/app/views/note.html'))
-        console.log('notes', NOTES)
-
         const dbNotes = await db.collection(`test`).find({}).toArray()
 
         res.render('notes', {
@@ -56,6 +61,29 @@ app.get('/notes', async (req, res) => {
         })
     } catch (err) {
         console.log(err);
+        res.redirect('/')
+    }
+})
+
+app.get('/update/:id', async (req, res) => {
+    try {
+        const id = req.params.id
+        const note = await db.collection(`test`).findOne({id: id})
+
+        if (note) {
+            res.render('update-note', {
+                title: 'update-note',
+                isUpdate: true,
+                message: `update Note "${note.note}"`,
+                note: await db.collection(`test`).findOne({id: id})
+            })
+        } else {
+            res.send(`note with id ${id} is not found`)
+        }
+
+    } catch {
+        console.error(err)
+        res.redirect('/')
     }
 })
 
@@ -80,18 +108,14 @@ app.get('/note', async (req, res) => {
 
 app.get('/note/:id', async (req, res) => {
     try {
-        console.log(req.params)
         const id = req.params.id
 
         if (!id) {
-            res.send(`your notes are ${JSON.stringify(NOTES)}`)
+            throw new Error('not id')
         } else {
             const note = await db.collection(`test`).findOne({id: id})
-            console.log(note)
-            // const note = NOTES.find((item) => item.id === id)
 
             if (note) {
-                // res.send(`your note is ${note.note}`)
                 res.render('note', {
                     title: 'note',
                     isNote: true,
@@ -104,7 +128,8 @@ app.get('/note/:id', async (req, res) => {
         }
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
+        throw err
     }
 })
 
@@ -124,9 +149,6 @@ app.post('/note', async (req, res) => {
         }
 
         const result = await db.collection(`test`).insertOne(req.body)
-        console.log(result)
-
-        // const note = await db.collection(`test`).findOne({id: id})
 
         res.render('note', {
             title: 'note',
@@ -142,17 +164,22 @@ app.post('/note', async (req, res) => {
     }
 })
 
-// app.put('/note/:id', async (req, res) => {
-//     try {
-//         console.log(req.body)
-//
-//         NOTES.push(req.body)
-//         res.send(`you added note# ${req.body.id}`)
-//     } catch (err) {
-//         console.log(err);
-//     }
-// })
-//
+app.put('/update/:id', async (req, res) => {
+    try {
+        const currentId = req.fields.currentId
+        const id = req.fields.id
+        const note = req.fields.note
+
+        await db.collection(`test`).updateOne({id: currentId}, {$set: {id: id, note: note}})
+
+        res.redirect(303, '/')
+
+    } catch (err) {
+        console.log(err);
+        res.redirect('/')
+    }
+})
+
 app.delete('/note/:id', async (req, res) => {
     const id = req.params.id
     const note = await db.collection(`test`).findOne({id: id})

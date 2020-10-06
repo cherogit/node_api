@@ -7,21 +7,16 @@ block content
             .notes__item-title title: #{note.note}
             .notes__item-body id: #{note.id}
             .notes__item-controls
-                button.notes__item-controls-btn._delete(type="button" onclick=`handler('` + note.id + `')`) delete
-                button.notes__item-controls-btn._update(type="button") update
-
-                // onclick="handler('del')"
-                // onclick="handler(del)"
-
+                button.notes__item-controls-btn._delete(type="button" onclick=`deleteNote('` + note.id + `')`) delete
+                a.notes__item-controls-btn._update(href=`/update/${note.id}`) update
 
 block scripts
     script.
-        function handler(id) {
-            console.log(id)
+        function deleteNote(id) {
 
             fetch(`/note/${id}`, {
                 method: 'DELETE',
             })
-                .then(res => res.text()) // or res.json()
+                .then(res => res.text())
                 .then(res => console.log(res))
         }
