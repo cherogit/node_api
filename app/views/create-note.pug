@@ -2,11 +2,11 @@ extends ./layouts/main.pug
 
 block content
     if (!isResult)
-        form.form(action="/note" method="post")
+        form.form(action="/note" method="POST")
             .form__title= message
             label.label
                 input.input(type="text" name="id")
-                span.label__name :id
+                span.label__name :number
             label.label
                 input.input(type="text" name="note")
                 span.label__name :note

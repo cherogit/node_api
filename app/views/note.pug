@@ -5,7 +5,7 @@ block content
     ul.notes
         li.notes__item
             .notes__item-title title: #{note.note}
-            .notes__item-body id: #{note.id}
+            .notes__item-body id: #{note._id}
             .notes__item-controls
                 button.notes__item-controls-btn._delete(type="button" onclick=`deleteNote('` + note.id + `')`) delete
                 a.notes__item-controls-btn._update(href=`/update/${note.id}`) update

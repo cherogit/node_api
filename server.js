@@ -4,6 +4,7 @@ const express = require('express')
 const formidableMiddleware = require('express-formidable')
 const path = require('path')
 const MongoClient = require('mongodb').MongoClient
+const ObjectId = require('mongodb').ObjectID
 const bodyParser = require('body-parser')
 const dbConfig = require('./config/db')
 let db = null
@@ -21,82 +22,56 @@ MongoClient.connect(dbConfig.url, {
 
 const app = express();
 
-app.set(`view engine`, `pug`);
+app.set(`view engine`, `pug`)
 app.set(`views`, `./app/views`)
 
-app.use(function (err, req, res, next) {
-    console.error(err)
-    res.status(500).send('Something broke!')
-})
-app.use(formidableMiddleware())
+// app.use(formidableMiddleware())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.static(path.join(__dirname, '/public')))
 
-app.use((req, res, next) => {
-    // if (Math.random() > 0.5) next()
-    next()
-})
-
 app.get('/', async (req, res) => {
-    try {
-        res.render('index', {
-            title: 'Home',
-            isIndex: true,
-            message: 'Home Page'
-        })
-    } catch (err) {
-        console.log(err);
-    }
+
+    res.render('index', {
+        title: 'Home',
+        isIndex: true,
+        message: 'Home Page'
+    })
 })
 
 app.get('/notes', async (req, res) => {
-    try {
-        const dbNotes = await db.collection(`test`).find({}).toArray()
 
-        res.render('notes', {
-            title: 'notes list',
-            isNotes: true,
-            message: 'Notes Page',
-            notes: dbNotes
-        })
-    } catch (err) {
-        console.log(err);
-        res.redirect('/')
-    }
+    const dbNotes = await db.collection(`test`).find({}).toArray()
+
+    res.render('notes', {
+        title: 'notes list',
+        isNotes: true,
+        message: 'Notes Page',
+        notes: dbNotes
+    })
 })
 
 app.get('/update/:id', async (req, res) => {
-    try {
-        const id = req.params.id
-        const note = await db.collection(`test`).findOne({id: id})
+    const id = req.params.id
+    const note = await db.collection(`test`).findOne({id: id})
 
-        if (note) {
-            res.render('update-note', {
-                title: 'update-note',
-                isUpdate: true,
-                message: `update Note "${note.note}"`,
-                note: await db.collection(`test`).findOne({id: id})
-            })
-        } else {
-            res.send(`note with id ${id} is not found`)
-        }
-
-    } catch {
-        console.error(err)
-        res.redirect('/')
+    if (note) {
+        res.render('update-note', {
+            title: 'update-note',
+            isUpdate: true,
+            message: `update Note "${note.note}"`,
+            note: await db.collection(`test`).findOne({id: id})
+        })
+    } else {
+        res.send(`note with id ${id} is not found`)
     }
 })
 
 app.get('/note', async (req, res) => {
-    try {
-        res.render('create-note', {
-            title: 'create-note',
-            isCreate: true,
-            message: 'Create Note Page'
-        })
-    } catch (err) {
-        console.log(err)
-    }
+    res.render('create-note', {
+        title: 'create-note',
+        isCreate: true,
+        message: 'Create Note Page'
+    })
 })
 
 // app.get('/search/:text?', async (req, res) => {
@@ -107,77 +82,64 @@ app.get('/note', async (req, res) => {
 // })
 
 app.get('/note/:id', async (req, res) => {
-    try {
-        const id = req.params.id
+    const id = req.params.id
 
-        if (!id) {
-            throw new Error('not id')
+    if (!id) {
+        throw new Error('not id')
+    } else {
+        const note = await db.collection(`test`).findOne({'_id': ObjectId(`${id}`)})
+
+        if (note) {
+            res.render('note', {
+                title: 'note',
+                isNote: true,
+                message: `Note is "${note.note}"`,
+                note: await db.collection(`test`).findOne({'_id': ObjectId(`${id}`)})
+            })
         } else {
-            const note = await db.collection(`test`).findOne({id: id})
-
-            if (note) {
-                res.render('note', {
-                    title: 'note',
-                    isNote: true,
-                    message: `Note is "${note.note}"`,
-                    note: await db.collection(`test`).findOne({id: id})
-                })
-            } else {
-                res.send(`note with id ${id} is not found`)
-            }
+            // res.send(`note with id ${id} is not found`)
+            let err = new Error('Page Not Found')
+            err.statusCode = 404
+            err.message = `note with id ${id} is not found`
+            throw err
         }
-
-    } catch (err) {
-        console.error(err);
-        throw err
     }
 })
 
 app.post('/note', async (req, res) => {
-    try {
-        console.log(req.body)
-        const id = req.body.id
+    const id = req.body.id
 
-        if (!id) {
-            throw new Error('not id')
-        }
-
-        const existingNote = await db.collection(`test`).findOne({id: id})
-
-        if (existingNote) {
-            throw new Error('Уже существует.')
-        }
-
-        const result = await db.collection(`test`).insertOne(req.body)
-
-        res.render('note', {
-            title: 'note',
-            isCreate: true,
-            message: 'Вы создали заметку, поздравляем!',
-            isResult: true,
-            successMessage: `you added note# ${req.body.id} Yoohoo`,
-            note: result.ops[0]
-        })
-    } catch (err) {
-        console.error(err)
-        res.redirect('/note')
+    if (!id) {
+        throw new Error('not id')
     }
+
+    const existingNote = await db.collection(`test`).findOne({id: id})
+
+    if (existingNote) {
+        throw new Error('Уже существует.')
+    }
+
+    const result = await db.collection(`test`).insertOne(req.body)
+
+    res.render('note', {
+        title: 'note',
+        isCreate: true,
+        message: 'Вы создали заметку, поздравляем!',
+        isResult: true,
+        successMessage: `you added note# ${req.body.id} Yoohoo`,
+        note: result.ops[0]
+    })
 })
 
-app.put('/update/:id', async (req, res) => {
-    try {
-        const currentId = req.fields.currentId
-        const id = req.fields.id
-        const note = req.fields.note
+app.put('/update/:id', formidableMiddleware(), async (req, res) => {
+    const currentId = req.fields.currentId
+    console.log(currentId)
+    const id = req.fields.id
+    const note = req.fields.note
 
-        await db.collection(`test`).updateOne({id: currentId}, {$set: {id: id, note: note}})
+    await db.collection(`test`).updateOne({'_id': ObjectId(`${currentId}`)}, {$set: {id: id, note: note}})
 
-        res.redirect(303, '/')
-
-    } catch (err) {
-        console.log(err);
-        res.redirect('/')
-    }
+    res.redirect(303, '/')
 })
 
 app.delete('/note/:id', async (req, res) => {
@@ -195,6 +157,25 @@ app.delete('/note/:id', async (req, res) => {
     })
 })
 
+app.get('*', function(req, res) {
+    let err = new Error('Page Not Found')
+    err.statusCode = 404
+    throw err
+});
+
+app.use((err, req, res, next) => {
+    console.error(err, req.method, req.path)
+    if (!err.statusCode) err.statusCode = 500
+
+    res.status(err.statusCode).render('error', {
+        title: `Код ошибки: ${err.statusCode}`,
+        message: err.message
+    })
+
+    next()
+})
+
+
 app.listen(8000, `0.0.0.0`, () => {
     console.log('We are live on ' + 8000);
-});
+})

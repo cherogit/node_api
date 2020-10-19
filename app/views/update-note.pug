@@ -9,7 +9,7 @@ block content
     label.label
       input.input(type="text" name="note" value=`${note.note}`)
       span.label__name :note
-    button.form__submit(type="button" onclick=`updateNote('` + note.id + `')`) update
+    button.form__submit(type="button" onclick=`updateNote('` + note._id + `')`) update
 
 block scripts
   script.
@@ -30,6 +30,6 @@ block scripts
           })
               .then(res => res.text())
               .then(res => {
-                  window.location.href = `/note/${id}`
+                  window.location.href = `/note/${currentId}`
               })
       }

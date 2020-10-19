@@ -6,8 +6,8 @@ block content
         ul.notes
             for note in notes
                 li.notes__item
-                    a.notes__item-link(href="/note/" + note.id)
+                    a.notes__item-link(href="/note/" + note._id)
                         .notes__item-title title: #{note.note}
-                        .notes__item-body id: #{note.id}
+                        .notes__item-body id: #{note._id}
     else
         h3 No notes yet
