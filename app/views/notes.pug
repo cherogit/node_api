@@ -7,7 +7,7 @@ block content
             for note in notes
                 li.notes__item
                     a.notes__item-link(href="/note/" + note._id)
-                        .notes__item-title title: #{note.note}
-                        .notes__item-body id: #{note._id}
+                        .notes__item-title title: #{note.title}
+                        .notes__item-body note: #{note.note}
     else
         h3 No notes yet

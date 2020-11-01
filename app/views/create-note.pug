@@ -1,15 +1,11 @@
 extends ./layouts/main.pug
 
 block content
-    if (!isResult)
-        form.form(action="/note" method="POST")
-            .form__title= message
-            label.label
-                input.input(type="text" name="id")
-                span.label__name :number
-            label.label
-                input.input(type="text" name="note")
-                span.label__name :note
-            button.form__submit create
-    else
-        h3= successMessage
+  form.form(action="/note" method="POST")
+    label.label
+      input.input(type="text" name="title")
+      span.label__name title
+    label.label
+      input.input(type="text" name="note")
+      span.label__name note
+    button.form__submit create

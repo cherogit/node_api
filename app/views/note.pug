@@ -4,11 +4,11 @@ block content
     h1= message
     ul.notes
         li.notes__item
-            .notes__item-title title: #{note.note}
-            .notes__item-body id: #{note._id}
+            .notes__item-title title: #{note.title}
+            .notes__item-body title: #{note.note}
             .notes__item-controls
-                button.notes__item-controls-btn._delete(type="button" onclick=`deleteNote('` + note.id + `')`) delete
-                a.notes__item-controls-btn._update(href=`/update/${note.id}`) update
+                a.notes__item-controls-btn._delete(href=`/notes` onclick=`deleteNote('` + note._id + `')`) delete
+                a.notes__item-controls-btn._update(href=`/update/${note._id}`) update
 
 block scripts
     script.

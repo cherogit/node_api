@@ -4,11 +4,12 @@ block content
   form.form(id="updateForm")
     .form__title= message
     label.label
-      input.input(type="text" name="id" value=`${note.id}`)
-      span.label__name :id
+      input.input(type="text" name="title" value=`${note.title}`)
+      span.label__name :title
     label.label
       input.input(type="text" name="note" value=`${note.note}`)
       span.label__name :note
+    input(type="hidden" name="id" value=`${note._id}`)
     button.form__submit(type="button" onclick=`updateNote('` + note._id + `')`) update
 
 block scripts
@@ -17,12 +18,14 @@ block scripts
 
           const form = document.querySelector('#updateForm')
           const formData = new FormData();
-          const id = form.querySelector('input[name="id"]').value
+          const title = form.querySelector('input[name="title"]').value
           const note = form.querySelector('input[name="note"]').value
+          const id = form.querySelector('input[name="id"]').value
 
           formData.append('currentId', currentId)
-          formData.append('id', id)
+          formData.append('title', title)
           formData.append('note', note)
+          formData.append('id', id)
 
           fetch(`/update/${currentId}`, {
               method: 'PUT',
