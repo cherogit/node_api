@@ -57,7 +57,7 @@ app.get('/update/:id', async (req, res) => {
         res.render('update-note', {
             title: 'update-note',
             message: `update Note "${note.note}"`,
-            note: await db.collection(`test`).findOne({'_id': ObjectId(id)})
+            note: note
         })
     } else {
         res.send(`note with id ${id} is not found`)
@@ -92,7 +92,7 @@ app.get('/note/:id', async (req, res) => {
                 title: 'note',
                 isNote: true,
                 message: `Note is "${note.note}"`,
-                note: await db.collection(`test`).findOne({'_id': ObjectId(`${id}`)})
+                note: note
             })
         } else {
             let err = new Error('Page Not Found')
@@ -131,7 +131,7 @@ app.put('/update/:id', formidableMiddleware(), async (req, res) => {
     const title = req.fields.title
     const note = req.fields.note
 
-    await db.collection(`test`).updateOne({'_id': ObjectId(`${id}`)}, {$set: {title: title, note: note}})
+    await db.collection(`test`).updateOne({'_id': ObjectId(id)}, {$set: {title: title, note: note}})
 
     res.redirect(303, '/')
 })
@@ -140,7 +140,7 @@ app.delete('/note/:id', async (req, res) => {
     const id = req.params.id
     const note = await db.collection(`test`).findOne({id: id})
 
-    await db.collection(`test`).deleteOne({'_id': ObjectId(`${id}`)})
+    await db.collection(`test`).deleteOne({'_id': ObjectId(id)})
 })
 
 app.get('*', function(req, res) {
