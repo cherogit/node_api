@@ -33,6 +33,30 @@ app.use(bodyParser())
 app.use(serve(path.join(__dirname, '/public')))
 app.use(views(path.join(__dirname, '/app/views'), {extension: 'pug'}))
 
+app.use(async (ctx, next) => {
+    try {
+        await next()
+    } catch (err) {
+        ctx.status = err.status || 500
+        // ctx.body = err.message
+
+        await ctx.render('error', {
+            title: `Ошибка ${ctx.status}`,
+            message: err.message
+        })
+    }
+})
+
+app.on('error', (err, ctx) => {
+    console.error('server error', err)
+    /* centralized error handling:
+     *   console.log error
+     *   write error to log file
+     *   save error and request information to database if ctx.request match condition
+     *   ...
+    */
+})
+
 router
     .get('/', async ctx => {
 
@@ -67,7 +91,8 @@ router
         const id = ctx.params.id
 
         if (!id) {
-            throw new Error('not id')
+            // throw new Error('not id')
+            throw new Error('Error Message')
         } else {
             const note = await db.collection(`test`).findOne({'_id': ObjectId(id)})
 
@@ -79,10 +104,13 @@ router
                     note: note
                 })
             } else {
-                let err = new Error('Page Not Found')
-                err.statusCode = 404
-                err.message = `note with id ${id} is not found`
-                throw err
+                // let err = new Error('Page Not Found')
+                // err.statusCode = 404
+                // err.message = `note with id ${id} is not found`
+                // throw err
+
+                // ctx.throw(400, `note with id ${id} is not found`)
+                throw new Error(`note with id ${id} is not found`)
             }
         }
     })
