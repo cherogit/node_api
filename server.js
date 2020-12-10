@@ -43,7 +43,7 @@ app.use(async (ctx, next) => {
             ctx.throw(404)
         }
     } catch (err) {
-        console.error(err)
+        console.error('err:', err.errors)
         ctx.status = err.status || 500
         // ctx.body = err.message
 
@@ -129,9 +129,12 @@ router.get('/update/:id', async ctx => {
 })
 
 router.post('/note', async ctx => {
+    console.log('zeroCool', ctx.request.body)
+
     await validateNoteCreationScheme(ctx.request.body)
 
-    console.log('zeroCool')
+    // if (!(validateNoteCreationScheme(ctx.request.body))) console.log(validateNoteCreationScheme.errors)
+
 
     const {title, note} = ctx.request.body
 

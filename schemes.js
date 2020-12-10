@@ -25,7 +25,7 @@ const noteCreationScheme = {
                 },
                 {
                     type: 'string',
-                    format: 'date-time'
+                    format: 'date'
                 }
             ]
         }
