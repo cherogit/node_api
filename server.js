@@ -12,6 +12,9 @@ const multer = require('koa-multer')
 const dbConfig = require('./config/db')
 let db = null
 
+const validateNoteCreationScheme = require('./schemes')
+
+
 MongoClient.connect(dbConfig.url, {
     useUnifiedTopology: true
 }, (err, database) => {
@@ -40,6 +43,7 @@ app.use(async (ctx, next) => {
             ctx.throw(404)
         }
     } catch (err) {
+        console.error(err)
         ctx.status = err.status || 500
         // ctx.body = err.message
 
@@ -125,11 +129,15 @@ router.get('/update/:id', async ctx => {
 })
 
 router.post('/note', async ctx => {
-    const title = ctx.request.body.title
+    await validateNoteCreationScheme(ctx.request.body)
 
-    if (!title || !note) {
-        ctx.throw(400, `Не заполнены поля`)
-    }
+    console.log('zeroCool')
+
+    const {title, note} = ctx.request.body
+
+    // if (!title || !note) {
+    //     ctx.throw(400, `Не заполнены поля`)
+    // }
 
     const existingNote = await db.collection(`test`).findOne({title: title})
 
