@@ -12,7 +12,13 @@ const multer = require('koa-multer')
 const dbConfig = require('./config/db')
 let db = null
 
-const validateNoteCreationScheme = require('./schemes')
+const validators = require('./schemes')
+
+const checkers = {
+    objectIdIsValid(id) {
+        return ObjectId.isValid(id)
+    }
+}
 
 
 MongoClient.connect(dbConfig.url, {
@@ -90,31 +96,32 @@ router.get('/note', async ctx => {
 router.get('/note/:id', async ctx => {
     const id = ctx.params.id
 
-    if (!id) {
-        ctx.throw(400, `not id`)
+    if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
+
+    const note = await db.collection(`test`).findOne({'_id': ObjectId(id)})
+
+    if (note) {
+        await ctx.render('note', {
+            title: 'note',
+            isNote: true,
+            message: `Note is "${note.note}"`,
+            note: note
+        })
     } else {
-        const note = await db.collection(`test`).findOne({'_id': ObjectId(id)})
+        // let err = new Error('Page Not Found')
+        // err.statusCode = 404
+        // err.message = `note with id ${id} is not found`
+        // throw err
 
-        if (note) {
-            await ctx.render('note', {
-                title: 'note',
-                isNote: true,
-                message: `Note is "${note.note}"`,
-                note: note
-            })
-        } else {
-            // let err = new Error('Page Not Found')
-            // err.statusCode = 404
-            // err.message = `note with id ${id} is not found`
-            // throw err
-
-            ctx.throw(400, `note with id ${id} is not found`)
-        }
+        ctx.throw(400, `note with id ${id} is not found`)
     }
 })
 
 router.get('/update/:id', async ctx => {
     const id = ctx.params.id
+
+    if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
+
     const note = await db.collection(`test`).findOne({'_id': ObjectId(id)})
 
     if (note) {
@@ -129,19 +136,11 @@ router.get('/update/:id', async ctx => {
 })
 
 router.post('/note', async ctx => {
-    console.log('zeroCool', ctx.request.body)
+    const resultValidation = await validators.noteValidator(ctx.request.body)
 
-    await validateNoteCreationScheme(ctx.request.body)
-
-    // if (!(validateNoteCreationScheme(ctx.request.body))) console.log(validateNoteCreationScheme.errors)
-
+    if (!resultValidation) console.error(validators.noteValidator.errors)
 
     const {title, note} = ctx.request.body
-
-    // if (!title || !note) {
-    //     ctx.throw(400, `Не заполнены поля`)
-    // }
-
     const existingNote = await db.collection(`test`).findOne({title: title})
 
     if (existingNote) {
@@ -159,6 +158,10 @@ router.post('/note', async ctx => {
 })
 
 router.put('/update/:id', upload.none(), async ctx => {
+    const resultValidation = await validators.noteValidator(ctx.request.body)
+
+    if (!resultValidation) console.log(validators.noteValidator.errors)
+
     const id = ctx.req.body.id
     const title = ctx.req.body.title
     const note = ctx.req.body.note
@@ -168,6 +171,9 @@ router.put('/update/:id', upload.none(), async ctx => {
 
 router.delete('/note/:id', async ctx => {
     const id = ctx.params.id
+
+    if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
+
     const note = await db.collection(`test`).findOne({id: id})
 
     await db.collection(`test`).deleteOne({'_id': ObjectId(id)})

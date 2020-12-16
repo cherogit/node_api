@@ -21,7 +21,7 @@ const noteCreationScheme = {
         publication_date: {
             oneOf: [
                 {
-                    type: 'null'
+                    type: 'string'
                 },
                 {
                     type: 'string',
@@ -33,4 +33,4 @@ const noteCreationScheme = {
     required: ['title', 'note']
 }
 
-module.exports = ajv.compile(noteCreationScheme)
+exports.noteValidator = ajv.compile(noteCreationScheme)
