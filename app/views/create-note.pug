@@ -8,4 +8,19 @@ block content
     label.label
       input.input(type="text" name="note")
       span.label__name note
+    label.label
+      select(multiple name="labels[]")
+        option Новости
+        option Рубрика
+        option Новинка
+        option Флуд
+    label.label
+      input(type="date" name="publication_date" value="")
+      span.label__name date
     button.form__submit create
+
+block scripts
+  script.
+      function test() {
+
+      }

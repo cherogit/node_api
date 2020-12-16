@@ -9,6 +9,15 @@ block content
     label.label
       input.input(type="text" name="note" value=`${note.note}`)
       span.label__name :note
+    label.label
+      select(multiple name="labels[]" value=`${note.labels.selected}`)
+        option Новости
+        option Рубрика
+        option Новинка
+        option Флуд
+    label.label
+      input(type="date" name="publication_date" value=`${note.publication_date}`)
+      span.label__name date
     input(type="hidden" name="id" value=`${note._id}`)
     button.form__submit(type="button" onclick=`updateNote('` + note._id + `')`) update
 
@@ -20,11 +29,15 @@ block scripts
           const formData = new FormData();
           const title = form.querySelector('input[name="title"]').value
           const note = form.querySelector('input[name="note"]').value
+          const labels = form.querySelector('input[name="labels[]"]').value
+          const publication_date = form.querySelector('input[name="publication_date"]').value
           const id = form.querySelector('input[name="id"]').value
 
           formData.append('currentId', currentId)
           formData.append('title', title)
           formData.append('note', note)
+          formData.append('labels', labels)
+          formData.append('publication_date', publication_date)
           formData.append('id', id)
 
           fetch(`/update/${currentId}`, {
