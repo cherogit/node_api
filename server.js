@@ -12,6 +12,21 @@ const multer = require('koa-multer')
 const dbConfig = require('./config/db')
 let db = null
 
+///////////////////////////////////////////////////////////////// TODO
+const COOKIE_NAME = "session_id"
+const PWD_SALT =
+    "ksyugfkzsgfkdsyg fk`ysg fkyGfkygKFSG KJYS KY WKEUR EKRYGEKF TKESGYDM DS"
+
+const crypto = require("crypto")
+const util = require("util")
+const pbkdf2 = util.promisify(crypto.pbkdf2)
+const hashPassword = async (password) => {
+    return (await pbkdf2(password, PWD_SALT, 100000, 64, "sha512")).toString(
+        "hex"
+    )
+}
+/////////////////////////////////////////////////////////////////
+
 const validators = require('./schemes')
 
 const checkers = {
@@ -19,7 +34,6 @@ const checkers = {
         return ObjectId.isValid(id)
     }
 }
-
 
 MongoClient.connect(dbConfig.url, {
     useUnifiedTopology: true
@@ -49,9 +63,13 @@ app.use(async (ctx, next) => {
             ctx.throw(404)
         }
     } catch (err) {
-        console.error('err:', err.errors)
+        if (err.errors) {
+            console.error("validation errors:", err.errors)
+        } else {
+            console.error(err)
+        }
+
         ctx.status = err.status || 500
-        // ctx.body = err.message
 
         await ctx.render('error', {
             title: `Ошибка ${ctx.status}`,
@@ -62,6 +80,68 @@ app.use(async (ctx, next) => {
 
 app.on('error', (err, ctx) => {
     console.error('server error', err)
+})
+
+router.get('/registration', async ctx => {
+
+    await ctx.render('registration', {
+        title: 'Registration',
+        message: 'welcome'
+    })
+})
+
+router.post('/registration', async ctx => {
+    const {login, userName, password} = ctx.request.body
+
+    const existingLogin = await db.collection(`users`).findOne({ login })
+
+    if (existingLogin) {
+        ctx.throw(409, `User с таким login уже существует.`)
+    }
+
+    const hashedPassword = await hashPassword(password)
+
+    await db.collection(`users`).insertOne({login, userName, hashedPassword})
+
+    await ctx.render('registration', {
+        title: 'Registration',
+        message: `Welcome, ${userName}`
+    })
+})
+
+router.get('/auth', async ctx => {
+
+    await ctx.render('auth', {
+        title: 'Authorization',
+        message: 'Sign in'
+    })
+})
+
+router.post('/auth', async ctx => {
+    const {login, password} = ctx.request.body
+
+    const user = await db.collection(`users`).findOne({ login: login })
+    if (!user) ctx.throw(403, "User is not defined")
+
+    const hashedPassword = await hashPassword(password)
+    if (hashedPassword !== user.hashedPassword) {
+        ctx.throw(403, "Неверный пароль")
+    }
+
+    const cookie = {
+        name: COOKIE_NAME,
+        value: Math.random().toString().slice(2),
+        expires: new Date(Date.now() + 1000 * 86400 * 365),
+    }
+
+    await db.collection(`users`).updateOne({login: login}, {$set: {cookies: cookie}})
+
+    ctx.cookies.set(cookie.name, cookie.value, {
+        expires: cookie.expires,
+        httpOnly: true,
+    })
+
+    ctx.redirect('/')
 })
 
 router.get('/', async ctx => {
@@ -158,9 +238,7 @@ router.post('/note', async ctx => {
 })
 
 router.put('/update/:id', upload.none(), async ctx => {
-    const resultValidation = await validators.noteValidator(ctx.request.body)
-
-    if (!resultValidation) console.log(validators.noteValidator.errors)
+    await validators.noteValidator(ctx.request.body)
 
     const id = ctx.req.body.id
     const title = ctx.req.body.title
