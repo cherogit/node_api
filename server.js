@@ -93,7 +93,7 @@ router.get('/registration', async ctx => {
 router.post('/registration', async ctx => {
     const {login, userName, password} = ctx.request.body
 
-    const existingLogin = await db.collection(`users`).findOne({ login })
+    const existingLogin = await db.collection(`users`).findOne({login})
 
     if (existingLogin) {
         ctx.throw(409, `User с таким login уже существует.`)
@@ -117,10 +117,33 @@ router.get('/auth', async ctx => {
     })
 })
 
+app.use(async (ctx, next) => {
+    const cookieValue = ctx.cookies.get(COOKIE_NAME)
+
+    ctx.user = await db.collection("users").findOne(
+        {
+            "cookies.name": COOKIE_NAME,
+            "cookies.value": cookieValue,
+        },
+        {
+            projection: {
+                passwordHash: 0,
+                cookies: 0,
+            },
+        }
+    )
+
+    if (!["/auth"].includes(ctx.path)) {
+        if (!ctx.user) ctx.throw(403, "You are not logged in, please log in")
+    }
+
+    await next()
+})
+
 router.post('/auth', async ctx => {
     const {login, password} = ctx.request.body
 
-    const user = await db.collection(`users`).findOne({ login: login })
+    const user = await db.collection(`users`).findOne({login: login})
     if (!user) ctx.throw(403, "User is not defined")
 
     const hashedPassword = await hashPassword(password)
