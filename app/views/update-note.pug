@@ -10,7 +10,7 @@ block content
       input.input(type="text" name="note" value=`${note.note}`)
       span.label__name :note
     label.label
-      select(multiple name="labels[]" value=`${note.labels.selected}`)
+      select(multiple name="labels[]")
         option Новости
         option Рубрика
         option Новинка
@@ -24,12 +24,13 @@ block content
 block scripts
   script.
       function updateNote(currentId) {
+          console.log(currentId)
 
           const form = document.querySelector('#updateForm')
           const formData = new FormData();
           const title = form.querySelector('input[name="title"]').value
           const note = form.querySelector('input[name="note"]').value
-          const labels = form.querySelector('input[name="labels[]"]').value
+          const labels = form.querySelector('select[name="labels[]"]').value
           const publication_date = form.querySelector('input[name="publication_date"]').value
           const id = form.querySelector('input[name="id"]').value
 

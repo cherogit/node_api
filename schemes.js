@@ -29,7 +29,7 @@ const noteCreationScheme = {
             ]
         }
     },
-    required: ['title', 'note']
+    // required: ['title', 'note']
 }
 
 exports.noteValidator = ajv.compile(noteCreationScheme)

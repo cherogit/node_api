@@ -104,7 +104,7 @@ router.post("/registration", async (ctx) => {
 
     const hashedPassword = await hashPassword(password);
 
-    await db.collection(`users`).insertOne({login, userName, hashedPassword, cookies: []});
+    await db.collection(`users`).insertOne({login, userName, hashedPassword, cookies: {}});
 
     await ctx.render("registration", {
         title: "Registration",
@@ -161,7 +161,7 @@ router.post("/auth", async (ctx) => {
 
     await db
         .collection(`users`)
-        .updateOne({login: login}, {$addToSet: {cookies: cookie}});
+        .updateOne({login: login}, {$set: {cookies: cookie}});
 
     ctx.cookies.set(cookie.name, cookie.value, {
         expires: cookie.expires,
@@ -176,13 +176,11 @@ router.get("/logout", async (ctx) => {
 
     const cookieValue = ctx.cookies.get(COOKIE_NAME);
 
-    console.log(ctx.user);
-
     await db
         .collection("users")
         .updateOne(
             {_id: ObjectId(ctx.user._id)},
-            {$pull: {cookies: {value: cookieValue}}}
+            {$set: {cookies: {value: cookieValue}}}
         );
 
     ctx.cookies.set(COOKIE_NAME)
@@ -281,12 +279,18 @@ router.post("/note", async (ctx) => {
     });
 });
 
-router.put("/update/:id", upload.none(), async (ctx) => {
-    await validators.noteValidator(ctx.request.body)
+router.put("/update/:id", async (ctx) => {
+    // await validators.noteValidator(ctx.request.body)
 
-    const id = ctx.req.body.id
-    const title = ctx.req.body.title
-    const note = ctx.req.body.note
+    // const resultValidation = await validators.noteValidator(ctx.request.body);
+    //
+    // if (!resultValidation) console.error(validators.noteValidator.errors);
+
+    const {id, title, note} = ctx.request.body;
+
+    console.log('id', id)
+    console.log('title', title)
+    console.log('note', note)
 
     await db
         .collection(`test`)
