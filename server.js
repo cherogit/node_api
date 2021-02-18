@@ -12,28 +12,27 @@ const multer = require("koa-multer");
 const dbConfig = require("./config/db");
 let db = null;
 
-///////////////////////////////////////////////////////////////// TODO
-const COOKIE_NAME = "session_id";
-const PWD_SALT =
-    "ksyugfkzsgfkdsyg fk`ysg fkyGfkygKFSG KJYS KY WKEUR EKRYGEKF TKESGYDM DS";
+const {COOKIE_NAME, PWD_SALT} = require('./constants')
 
-const crypto = require("crypto");
-const util = require("util");
-const pbkdf2 = util.promisify(crypto.pbkdf2);
+///////////////////////////////////////////////////////////////// TODO
+
+const crypto = require("crypto")
+const util = require("util")
+const pbkdf2 = util.promisify(crypto.pbkdf2)
 const hashPassword = async (password) => {
     return (await pbkdf2(password, PWD_SALT, 100000, 64, "sha512")).toString(
         "hex"
-    );
-};
+    )
+}
 /////////////////////////////////////////////////////////////////
 
-const validators = require("./schemes");
+const validators = require("./schemes")
 
 const checkers = {
     objectIdIsValid(id) {
-        return ObjectId.isValid(id);
-    },
-};
+        return ObjectId.isValid(id)
+    }
+}
 
 MongoClient.connect(
     dbConfig.url,
@@ -180,7 +179,7 @@ router.get("/logout", async (ctx) => {
         .collection("users")
         .updateOne(
             {_id: ObjectId(ctx.user._id)},
-            {$set: {cookies: {value: cookieValue}}}
+            {$set: {cookies: {}}}
         );
 
     ctx.cookies.set(COOKIE_NAME)
@@ -286,6 +285,8 @@ router.put("/update/:id", async (ctx) => {
     //
     // if (!resultValidation) console.error(validators.noteValidator.errors);
 
+    console.log('put', ctx.params)
+
     const {id, title, note} = ctx.request.body;
 
     console.log('id', id)
@@ -309,6 +310,9 @@ router.delete("/note/:id", async (ctx) => {
 
 app.use(router.routes());
 
-app.listen(8000, `0.0.0.0`, () => {
-    console.log("Listen with Koa " + 8000);
+const PORT = parseInt(process.env.PORT || 8000)
+const HOST = process.env.HOST || `127.0.0.1`
+
+app.listen(PORT, HOST, () => {
+    console.log(`Listen with Koa on ${HOST}:${PORT}`);
 });
