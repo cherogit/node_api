@@ -8,23 +8,12 @@ const path = require("path");
 const MongoClient = require("mongodb").MongoClient;
 const ObjectId = require("mongodb").ObjectID;
 const bodyParser = require("koa-bodyparser");
-const multer = require("koa-multer");
-const dbConfig = require("./config/db");
+const multer = require('@koa/multer')
+const dbConfig = require("./config/db")
 let db = null;
 
-const {COOKIE_NAME, PWD_SALT} = require('./constants')
-
-///////////////////////////////////////////////////////////////// TODO
-
-const crypto = require("crypto")
-const util = require("util")
-const pbkdf2 = util.promisify(crypto.pbkdf2)
-const hashPassword = async (password) => {
-    return (await pbkdf2(password, PWD_SALT, 100000, 64, "sha512")).toString(
-        "hex"
-    )
-}
-/////////////////////////////////////////////////////////////////
+const {COOKIE_NAME, PERMISSIONS} = require('./constants')
+const {hashPassword} = require('./hashPassword')
 
 const validators = require("./schemes")
 
@@ -49,14 +38,14 @@ MongoClient.connect(
     }
 );
 
-const app = new Koa();
-const router = new Router();
-const upload = multer();
+const app = new Koa()
+const router = new Router()
+const upload = multer()
 
-app.use(bodyParser());
+app.use(bodyParser())
 
-app.use(serve(path.join(__dirname, "/public")));
-app.use(views(path.join(__dirname, "/app/views"), {extension: "pug"}));
+app.use(serve(path.join(__dirname, "/public")))
+app.use(views(path.join(__dirname, "/app/views"), {extension: "pug"}))
 
 app.use(async (ctx, next) => {
     try {
@@ -84,6 +73,14 @@ app.use(async (ctx, next) => {
 app.on("error", (err, ctx) => {
     console.error("server error", err);
 });
+
+///////////////////////////// TODO
+app.use(async (ctx, next) => {
+
+
+    await next();
+})
+/////////////////////////////
 
 router.get("/registration", async (ctx) => {
     await ctx.render("registration", {
@@ -239,11 +236,15 @@ router.get("/note/:id", async (ctx) => {
 });
 
 router.get("/update/:id", async (ctx) => {
+    const userRole = await db.collection('roles').findOne({key: ctx.user.role})
+
+    if (!userRole.permissions.includes(PERMISSIONS.updateNote)) ctx.throw(403, 'permission denied (you cannot modify the note)')
+
     const id = ctx.params.id;
 
-    if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`);
+    if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
 
-    const note = await db.collection(`test`).findOne({_id: ObjectId(id)});
+    const note = await db.collection(`test`).findOne({_id: ObjectId(id)})
 
     if (note) {
         await ctx.render("update-note", {
@@ -257,37 +258,38 @@ router.get("/update/:id", async (ctx) => {
 });
 
 router.post("/note", async (ctx) => {
-    const resultValidation = await validators.noteValidator(ctx.request.body);
+    const resultValidation = await validators.noteValidator(ctx.request.body)
 
-    if (!resultValidation) console.error(validators.noteValidator.errors);
+    if (!resultValidation) console.error(validators.noteValidator.errors)
 
-    const {title, note} = ctx.request.body;
-    const existingNote = await db.collection(`test`).findOne({title: title});
+    const {title, note} = ctx.request.body
+    const existingNote = await db.collection(`test`).findOne({title: title})
 
     if (existingNote) {
-        ctx.throw(409, `заметка с таким заголовком уже существует.`);
+        ctx.throw(409, `заметка с таким заголовком уже существует.`)
     }
 
-    const result = await db.collection(`test`).insertOne(ctx.request.body);
+    const result = await db.collection(`test`).insertOne(ctx.request.body)
 
     await ctx.render("note", {
         title: "note",
         isCreate: true,
         message: "Вы создали заметку, поздравляем!",
-        note: result.ops[0],
-    });
+        note: result.ops[0]
+    })
 });
 
-router.put("/update/:id", async (ctx) => {
-    // await validators.noteValidator(ctx.request.body)
+router.put("/update/:id", upload.none(), async (ctx) => {
+    console.log(123, checkers.objectIdIsValid(ctx.params.id))
+    await validators.noteValidator(ctx.request.body)
 
-    // const resultValidation = await validators.noteValidator(ctx.request.body);
-    //
-    // if (!resultValidation) console.error(validators.noteValidator.errors);
+    const resultValidation = await validators.noteValidator(ctx.request.body);
+
+    if (!resultValidation) console.error(validators.noteValidator.errors);
 
     console.log('put', ctx.params)
 
-    const {id, title, note} = ctx.request.body;
+    const {id, title, note} = ctx.request.body
 
     console.log('id', id)
     console.log('title', title)
