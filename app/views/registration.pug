@@ -1,0 +1,14 @@
+extends ./layouts/main.pug
+
+block content
+  form.form(action="/registration" method="POST")
+    label.label
+      input.input(type="text" name="login")
+      span.label__name login
+    label.label
+      input.input(type="text" name="userName")
+      span.label__name name
+    label.label
+      input.input(type="password" name="password")
+      span.label__name password
+    button.form__submit join

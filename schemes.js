@@ -1,4 +1,3 @@
-// const ajv = new Ajv({useDefaults: true})
 const Ajv = require("ajv").default
 const ajv = require("ajv-formats")(new Ajv({useDefaults: true}))
 
@@ -30,7 +29,7 @@ const noteCreationScheme = {
             ]
         }
     },
-    required: ['title', 'note']
+    // required: ['title', 'note']
 }
 
 exports.noteValidator = ajv.compile(noteCreationScheme)

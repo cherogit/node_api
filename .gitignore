@@ -1,4 +1,10 @@
 node_modules/
-config/db.js
-____server_copy.js
+config/*
+!config
+
+.DS_Store
 .idea
+.vscode
+
+____server_copy.js
+____server_cookie.js
