@@ -1,6 +1,8 @@
 node_modules/
 config/*
+utils/*
 !config
+!utils
 
 .DS_Store
 .idea

@@ -1,4 +1,4 @@
-const {PWD_SALT} = require('./constants')
+const {PWD_SALT} = require('../config/config')
 
 const crypto = require("crypto")
 const util = require("util")
