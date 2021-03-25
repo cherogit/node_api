@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 Error.stackTraceLimit = Infinity
 
 const Koa = require('koa')
@@ -13,7 +15,9 @@ const dbConfig = require('./config/db')
 let db = null
 
 const {PERMISSIONS} = require('./constants')
-const {COOKIE_NAME} = require('./config/config')
+// const {COOKIE_NAME} = require('./config/config')
+
+const COOKIE_NAME = process.env.COOKIE_NAME
 const {hashPassword} = require('./utils/hashPassword')
 
 const validators = require('./utils/schemes')
@@ -38,6 +42,8 @@ MongoClient.connect(
         }
     },
 )
+
+// console.log(process.env)
 
 const app = new Koa()
 const router = new Router()
@@ -119,10 +125,14 @@ router.get('/auth', async (ctx) => {
 app.use(async (ctx, next) => {
     const cookieValue = ctx.cookies.get(COOKIE_NAME)
 
+    console.log('cookieValue', cookieValue)
+
     ctx.user = await db.collection('users').findOne(
         {
-            'cookies.name': COOKIE_NAME,
-            'cookies.value': cookieValue,
+            [`cookies.${cookieValue}.name`]: COOKIE_NAME,
+            // 'cookies.name': COOKIE_NAME,
+            [`cookies.${cookieValue}.value`]: cookieValue
+            // 'cookies.value': cookieValue,
         },
         {
             projection: {
@@ -183,7 +193,9 @@ router.get('/logout', async (ctx) => {
         .collection('users')
         .updateOne(
             {_id: ObjectId(ctx.user._id)},
-            {$set: {cookies: {}}},
+            {$unset: {
+                [`cookies.${cookieValue}`]: '',
+            }}
         )
 
     ctx.cookies.set(COOKIE_NAME)
