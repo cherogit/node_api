@@ -25,13 +25,13 @@ const validators = require('./utils/schemes')
 const checkers = {
     objectIdIsValid(id) {
         return ObjectId.isValid(id)
-    },
+    }
 }
 
 MongoClient.connect(
     dbConfig.url,
     {
-        useUnifiedTopology: true,
+        useUnifiedTopology: true
     },
     (err, database) => {
         if (err) {
@@ -40,7 +40,7 @@ MongoClient.connect(
             console.log(`connected to DB ${dbConfig.dbName}`)
             db = database.db(dbConfig.dbName)
         }
-    },
+    }
 )
 
 // console.log(process.env)
@@ -72,7 +72,7 @@ app.use(async (ctx, next) => {
 
         await ctx.render('error', {
             title: `Ошибка ${ctx.status}`,
-            message: err.message,
+            message: err.message
         })
     }
 })
@@ -92,7 +92,7 @@ app.use(async (ctx, next) => {
 router.get('/registration', async (ctx) => {
     await ctx.render('registration', {
         title: 'Registration',
-        message: 'welcome',
+        message: 'welcome'
     })
 })
 
@@ -111,14 +111,14 @@ router.post('/registration', async (ctx) => {
 
     await ctx.render('registration', {
         title: 'Registration',
-        message: `Welcome, ${userName}`,
+        message: `Welcome, ${userName}`
     })
 })
 
 router.get('/auth', async (ctx) => {
     await ctx.render('auth', {
         title: 'Authorization',
-        message: 'Sign in',
+        message: 'Sign in'
     })
 })
 
@@ -137,9 +137,9 @@ app.use(async (ctx, next) => {
         {
             projection: {
                 hashedPassword: 0,
-                cookies: 0,
-            },
-        },
+                cookies: 0
+            }
+        }
     )
 
     if (!['/auth', '/registration'].includes(ctx.path)) {
@@ -163,7 +163,7 @@ router.post('/auth', async (ctx) => {
     const cookie = {
         name: COOKIE_NAME,
         value: Math.random().toString().slice(2),
-        expires: new Date(Date.now() + 1000 * 86400 * 365),
+        expires: new Date(Date.now() + 1000 * 86400 * 365)
     }
 
     await db
@@ -172,13 +172,13 @@ router.post('/auth', async (ctx) => {
             {login: login},
             {
                 $set: {
-                    [`cookies.${cookie.value}`]: cookie,
-                },
+                    [`cookies.${cookie.value}`]: cookie
+                }
             })
 
     ctx.cookies.set(cookie.name, cookie.value, {
         expires: cookie.expires,
-        httpOnly: true,
+        httpOnly: true
     })
 
     ctx.redirect('/')
@@ -193,10 +193,13 @@ router.get('/logout', async (ctx) => {
         .collection('users')
         .updateOne(
             {_id: ObjectId(ctx.user._id)},
-            {$unset: {
-                [`cookies.${cookieValue}`]: '',
-            }}
+            {
+                $unset: {
+                    [`cookies.${cookieValue}`]: ''
+                }
+            }
         )
+    Ò
 
     ctx.cookies.set(COOKIE_NAME)
 
@@ -207,7 +210,7 @@ router.get('/', async (ctx) => {
     await ctx.render('index', {
         title: 'Home',
         isIndex: true,
-        message: 'Home Page',
+        message: 'Home Page'
     })
 })
 
@@ -218,7 +221,7 @@ router.get('/notes', async (ctx) => {
         title: 'notes list',
         isNotes: true,
         message: 'Notes Page',
-        notes: dbNotes,
+        notes: dbNotes
     })
 })
 
@@ -226,7 +229,7 @@ router.get('/note', async (ctx) => {
     await ctx.render('create-note', {
         title: 'create-note',
         isCreate: true,
-        message: 'Create Note Page',
+        message: 'Create Note Page'
     })
 })
 
@@ -242,7 +245,7 @@ router.get('/note/:id', async (ctx) => {
             title: 'note',
             isNote: true,
             message: `Note is "${note.note}"`,
-            note: note,
+            note: note
         })
     } else {
         // let err = new Error('Page Not Found')
@@ -261,7 +264,7 @@ router.get('/update/:id', async (ctx) => {
     const userPermissions = userRoles.reduce((acc, cur) => {
         return [...acc, ...cur.permissions]
     }, [])
-    const uniqueUserPermissions =[...new Set(userPermissions)]
+    const uniqueUserPermissions = [...new Set(userPermissions)]
 
     console.log('uniqueUserPermissions', uniqueUserPermissions)
 
@@ -278,7 +281,7 @@ router.get('/update/:id', async (ctx) => {
         await ctx.render('update-note', {
             title: 'update-note',
             message: `update Note "${note.note}"`,
-            note: note,
+            note: note
         })
     } else {
         ctx.throw(404, `note with id ${id} is not found`)
@@ -303,7 +306,7 @@ router.post('/note', async (ctx) => {
         title: 'note',
         isCreate: true,
         message: 'Вы создали заметку, поздравляем!',
-        note: result.ops[0],
+        note: result.ops[0]
     })
 })
 
