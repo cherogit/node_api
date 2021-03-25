@@ -158,7 +158,13 @@ router.post('/auth', async (ctx) => {
 
     await db
         .collection(`users`)
-        .updateOne({login: login}, {$set: {cookies: cookie}})
+        .updateOne(
+            {login: login},
+            {
+                $set: {
+                    [`cookies.${cookie.value}`]: cookie,
+                },
+            })
 
     ctx.cookies.set(cookie.name, cookie.value, {
         expires: cookie.expires,
@@ -237,7 +243,8 @@ router.get('/note/:id', async (ctx) => {
 })
 
 router.get('/update/:id', async (ctx) => {
-    // console.log('ctx.user.roles', ctx.user.roles)
+    //// нужно вынести в функцию (ctx, PERMISSIONS.updateNote, errorMessage (внутри зашить))
+
     const userRoles = await db.collection('roles').find({key: {$in: ctx.user.roles}}).toArray()
     const userPermissions = userRoles.reduce((acc, cur) => {
         return [...acc, ...cur.permissions]
@@ -246,7 +253,8 @@ router.get('/update/:id', async (ctx) => {
 
     console.log('uniqueUserPermissions', uniqueUserPermissions)
 
-    if (!uniqueUserPermissions || !uniqueUserPermissions.includes(PERMISSIONS.updateNote)) ctx.throw(403, 'permission denied (you cannot modify the note)')
+    if (!uniqueUserPermissions.length > 0 || !uniqueUserPermissions.includes(PERMISSIONS.updateNote)) ctx.throw(403, 'permission denied (you cannot modify the note)')
+    //// нужно вынести в функцию
 
     const id = ctx.params.id
 
