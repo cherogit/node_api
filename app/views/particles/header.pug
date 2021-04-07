@@ -6,5 +6,7 @@ header.header
             a.nav__link(href="/notes" class=(isNotes) ? '_active' : '') Notes
             div.nav__controls
                 a.nav__link(href="/registration" class=(isRegistration) ? '_active' : '') Registration
-                a.nav__link(href="/auth" class=(isAuth) ? '_active' : '') Log in
-                a.nav__link(href="/logout" class=(isLogout) ? '_active' : '') Logout
+                if !isAuth
+                    a.nav__link(href="/auth" class=(isAuth) ? '_active' : '') Log in
+                else
+                    a.nav__link(href="/logout" class=(isLogout) ? '_active' : '') Logout

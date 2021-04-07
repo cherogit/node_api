@@ -1,5 +1,3 @@
-// const {PWD_SALT} = require('../config/config')
-
 const PWD_SALT = process.env.PWD_SALT
 
 const crypto = require("crypto")
