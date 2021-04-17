@@ -1,7 +1,6 @@
-const Koa = require('koa')
-const Router = require('koa-router')
 const ObjectId = require('mongodb').ObjectID
-const multer = require('@koa/multer')
+const {router, upload} = require('./router')
+const {getDb} = require('../db')
 
 const {PERMISSIONS} = require('../constants')
 
@@ -13,15 +12,8 @@ const checkers = {
     }
 }
 
-const app = new Koa()
-
-notesRouter = new Router()
-
-// app.use('/test', notesRouter)
-
-const upload = multer()
-
-notesRouter.get('/notes', async (ctx) => {
+router.get('/notes', async (ctx) => {
+    const db = getDb()
     const dbNotes = await db.collection(`test`).find({}).toArray()
 
     await ctx.render('notes', {
@@ -32,7 +24,7 @@ notesRouter.get('/notes', async (ctx) => {
     })
 })
 
-notesRouter.get('/note', async (ctx) => {
+router.get('/note', async (ctx) => {
     await ctx.render('create-note', {
         title: 'create-note',
         isCreate: true,
@@ -40,7 +32,8 @@ notesRouter.get('/note', async (ctx) => {
     })
 })
 
-notesRouter.get('/note/:id', async (ctx) => {
+router.get('/note/:id', async (ctx) => {
+    const db = getDb()
     const id = ctx.params.id
 
     if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
@@ -64,9 +57,10 @@ notesRouter.get('/note/:id', async (ctx) => {
     }
 })
 
-notesRouter.get('/update/:id', async (ctx) => {
+router.get('/update/:id', async (ctx) => {
     //// нужно вынести в функцию (ctx, PERMISSIONS.updateNote, errorMessage (внутри зашить))
 
+    const db = getDb()
     const userRoles = await db.collection('roles').find({key: {$in: ctx.user.roles}}).toArray()
     const userPermissions = userRoles.reduce((acc, cur) => {
         return [...acc, ...cur.permissions]
@@ -95,7 +89,8 @@ notesRouter.get('/update/:id', async (ctx) => {
     }
 })
 
-notesRouter.post('/note', async (ctx) => {
+router.post('/note', async (ctx) => {
+    const db = getDb()
     const resultValidation = await validators.noteValidator(ctx.request.body)
 
     if (!resultValidation) console.error(validators.noteValidator.errors)
@@ -117,8 +112,8 @@ notesRouter.post('/note', async (ctx) => {
     })
 })
 
-notesRouter.put('/update/:id', upload.none(), async (ctx) => {
-    console.log(123, checkers.objectIdIsValid(ctx.params.id))
+router.put('/update/:id', upload.none(), async (ctx) => {
+    const db = getDb()
     await validators.noteValidator(ctx.request.body)
 
     const resultValidation = await validators.noteValidator(ctx.request.body)
@@ -138,7 +133,8 @@ notesRouter.put('/update/:id', upload.none(), async (ctx) => {
         .updateOne({_id: ObjectId(id)}, {$set: {title: title, note: note}})
 })
 
-notesRouter.delete('/note/:id', async (ctx) => {
+router.delete('/note/:id', async (ctx) => {
+    const db = getDb()
     const id = ctx.params.id
 
     if (!checkers.objectIdIsValid(id)) ctx.throw(400, `id is not valid`)
@@ -147,5 +143,3 @@ notesRouter.delete('/note/:id', async (ctx) => {
 
     await db.collection(`test`).deleteOne({_id: ObjectId(id)})
 })
-
-app.use(notesRouter.routes())
