@@ -18,18 +18,20 @@ const noteCreationScheme = {
             }
         },
         publication_date: {
-            oneOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'string',
-                    format: 'date'
-                }
-            ]
+            type: 'string',
+            format: 'date'
+            // oneOf: [
+            //     {
+            //         type: 'string'
+            //     },
+            //     {
+            //         type: 'string',
+            //         format: 'date'
+            //     }
+            // ]
         }
     },
-    // required: ['title', 'note']
+    required: ['title', 'note']
 }
 
 exports.noteValidator = ajv.compile(noteCreationScheme)

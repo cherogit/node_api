@@ -4,6 +4,8 @@ const {getDb} = require('../db')
 
 const {PERMISSIONS} = require('../constants')
 
+const {checkUserAccessRights} = require('../utils/permissions')
+
 const validators = require('../utils/schemes')
 
 const checkers = {
@@ -58,19 +60,9 @@ router.get('/note/:id', async (ctx) => {
 })
 
 router.get('/update/:id', async (ctx) => {
-    //// нужно вынести в функцию (ctx, PERMISSIONS.updateNote, errorMessage (внутри зашить))
-
     const db = getDb()
-    const userRoles = await db.collection('roles').find({key: {$in: ctx.user.roles}}).toArray()
-    const userPermissions = userRoles.reduce((acc, cur) => {
-        return [...acc, ...cur.permissions]
-    }, [])
-    const uniqueUserPermissions = [...new Set(userPermissions)]
 
-    console.log('uniqueUserPermissions', uniqueUserPermissions)
-
-    if (!uniqueUserPermissions.length > 0 || !uniqueUserPermissions.includes(PERMISSIONS.updateNote)) ctx.throw(403, 'permission denied (you cannot modify the note)')
-    //// нужно вынести в функцию
+    await checkUserAccessRights(ctx, db, PERMISSIONS.updateNote)
 
     const id = ctx.params.id
 
@@ -91,6 +83,7 @@ router.get('/update/:id', async (ctx) => {
 
 router.post('/note', async (ctx) => {
     const db = getDb()
+    console.log('post create', ctx.request.body)
     const resultValidation = await validators.noteValidator(ctx.request.body)
 
     if (!resultValidation) console.error(validators.noteValidator.errors)
