@@ -10,6 +10,7 @@ const bodyParser = require('koa-bodyparser')
 
 const {router} = require('./routes/router')
 
+const {PORT, HOST} = require('./config/config')
 const {COOKIE_NAME} = require('./constants')
 
 const {getDb} = require('./db')
@@ -85,9 +86,6 @@ require('./routes/users')
 require('./routes/notes')
 
 app.use(router.routes())
-
-const PORT = parseInt(process.env.PORT || 8000)
-const HOST = process.env.HOST || `127.0.0.1`
 
 app.listen(PORT, HOST, () => {
     console.log(`Listen with Koa on ${HOST}:${PORT}`)
