@@ -25,6 +25,7 @@
     "koa-static": "^5.0.0",
     "koa-views": "^6.3.1",
     "mongodb": "^3.5.7",
+    "object-to-formdata": "^4.1.0",
     "pug": "^3.0.1"
   },
   "devDependencies": {
