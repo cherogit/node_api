@@ -22,21 +22,22 @@ block content
     button.form__submit(type="button" onclick=`updateNote('` + note._id + `')`) update
 
 block scripts
+
   script.
       function updateNote(currentId) {
-
           const form = document.querySelector('#updateForm')
           const formData = new FormData();
           const title = form.querySelector('input[name="title"]').value
           const note = form.querySelector('input[name="note"]').value
-          // const labels = form.querySelector('select[name="labels[]"]').value
+          const labelsSelect = form.querySelector('select[name="labels[]"]')
+          const labels = Array.from(labelsSelect.selectedOptions).map(option => option.value)
           const publication_date = form.querySelector('input[name="publication_date"]').value
           const id = form.querySelector('input[name="id"]').value
 
           formData.append('currentId', currentId)
           formData.append('title', title)
           formData.append('note', note)
-          // formData.append('labels', labels)
+          formData.append('labels[]', labels)
           formData.append('publication_date', publication_date)
           formData.append('id', id)
 
@@ -44,8 +45,9 @@ block scripts
               method: 'PUT',
               body: formData
           })
-              .then(res => res.text())
+              .then(res => res.json())
               .then(res => {
                   window.location.href = `/note/${currentId}`
               })
+              .catch(err => console.log('PUT Request error', err))
       }
