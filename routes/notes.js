@@ -83,13 +83,11 @@ router.get('/update/:id', async (ctx) => {
 
 router.post('/note', async (ctx) => {
     const db = getDb()
-    console.log('post create', ctx.request.body)
     const resultValidation = await validators.noteValidator(ctx.request.body)
 
     if (!resultValidation) console.error(validators.noteValidator.errors)
 
     const {title, labels} = ctx.request.body
-    console.log('labels', labels)
     const existingNote = await db.collection(`test`).findOne({title: title})
 
     if (existingNote) {
@@ -127,6 +125,8 @@ router.put('/update/:id', upload.none(), async (ctx) => {
                 publication_date: publication_date
             }
         })
+
+    ctx.body = {id}
 })
 
 router.delete('/note/:id', async (ctx) => {
@@ -138,4 +138,6 @@ router.delete('/note/:id', async (ctx) => {
     const note = await db.collection(`test`).findOne({id: id})
 
     await db.collection(`test`).deleteOne({_id: ObjectId(id)})
+
+    ctx.body = {id}
 })

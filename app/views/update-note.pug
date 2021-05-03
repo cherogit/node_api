@@ -45,10 +45,9 @@ block scripts
               method: 'PUT',
               body: formData
           })
-              .then(res => res.text())
+              .then(res => res.json())
               .then(res => {
-                  console.log(res)
-                  window.location.href = `/update/${currentId}`
+                  window.location.href = `/note/${currentId}`
               })
-              .catch(err => console.log('Connection error', err))
+              .catch(err => console.log('PUT Request error', err))
       }

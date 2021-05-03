@@ -17,6 +17,7 @@ block scripts
             fetch(`/note/${id}`, {
                 method: 'DELETE',
             })
-                .then(res => res.text())
+                .then(res => res.json())
                 .then(res => console.log(res))
+                .catch(err => console.error(err))
         }
